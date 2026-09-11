@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Dragon Hunter Z</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow: hidden;
+    background: #050505;
+    font-family: Arial, sans-serif;
+}
+
+canvas {
+    display: block;
+}
+
+/* ================= MENU ================= */
+
+#menu {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background:
+        radial-gradient(circle at center, #8b1608 0%, #260000 45%, #050000 100%);
+    color: white;
+}
+
+#dragonLogo {
+    font-size: 110px;
+    filter:
+        drop-shadow(0 0 15px #ff2a00)
+        drop-shadow(0 0 35px #ff0000);
+    animation: float 2s infinite ease-in-out;
+}
+
+#gameTitle {
+    font-size: 42px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #ff4a20;
+    text-shadow:
+        0 0 10px #ff0000,
+        0 0 25px #ff2a00;
+    text-align: center;
+}
+
+#subtitle {
+    margin-top: 8px;
+    color: #ffb09b;
+    letter-spacing: 3px;
+}
+
+#startButton {
+    margin-top: 45px;
+    padding: 16px 55px;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(#e52b12, #720b00);
+    border: 2px solid #ff6a3d;
+    border-radius: 8px;
+    box-shadow: 0 0 25px #ff2100;
+}
+
+#startButton:active {
+    transform: scale(0.95);
+}
+
+@keyframes float {
+    0%,100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* ================= GAME UI ================= */
+
+#gameUI {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+#healthBox {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 180px;
+    color: white;
+}
+
+#healthText {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#healthBar {
+    height: 18px;
+    background: #300000;
+    border: 2px solid white;
+}
+
+#health {
+    height: 100%;
+    width: 100%;
+    background: #e21b0c;
+}
+
+#enemyInfo {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: white;
+    text-align: right;
+}
+
+/* ================= CONTROLS ================= */
+
+#controls {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    display: flex;
+    gap: 8px;
+    pointer-events: auto;
+}
+
+.moveButton {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: rgba(50,50,50,.7);
+    color: white;
+    font-size: 20px;
+}
+
+#attackButton {
+    position: absolute;
+    right: 25px;
+    bottom: 35px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #ff6a3d;
+    background: rgba(150,20,0,.75);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: auto;
+}
+
+#message {
+    position: absolute;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: rgba(0,0,0,.7);
+    color: white;
+    pointer-events: auto;
+}
+
+#message h1 {
+    font-size: 50px;
+    color: #ff4b22;
+    text-shadow: 0 0 20px red;
+}
+
+#restart {
+    margin-top: 25px;
+    padding: 13px 35px;
+    background: #a91c08;
+    color: white;
+    border: 2px solid #ff6745;
+    border-radius: 6px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= MENU ================= -->
+
+<div id="menu">
+
+    <div id="dragonLogo">🐉</div>
+
+    <div id="gameTitle">
+        DRAGON HUNTER Z
+    </div>
+
+    <div id="subtitle">
+        THE WAR OF THE DRAGON KINGDOM
+    </div>
+
+    <button id="startButton">
+        GAME START
+    </button>
+
+</div>
+
+<!-- ================= GAME UI ================= -->
+
+<div id="gameUI">
+
+    <div id="healthBox">
+        <div id="healthText">DRAGON WARRIOR</div>
+
+        <div id="healthBar">
+            <div id="health"></div>
+        </div>
+    </div>
+
+    <div id="enemyInfo">
+        BEAR KINGDOM<br>
+        MUSUH: <span id="enemyCount">5</span>
+    </div>
+
+    <div id="controls">
+
+        <button class="moveButton" id="left">←</button>
+        <button class="moveButton" id="forward">↑</button>
+        <button class="moveButton" id="back">↓</button>
+        <button class="moveButton" id="right">→</button>
+
+    </div>
+
+    <button id="attackButton">
+        ATTACK
+    </button>
+
+    <div id="message">
+
+        <h1 id="messageTitle">
+            VICTORY
+        </h1>
+
+        <button id="restart">
+            PLAY AGAIN
+        </button>
+
+    </div>
+
+</div>
+
+<!-- THREE.JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+/* ==========================================
+   DRAGON HUNTER Z
+========================================== */
+
+let scene;
+let camera;
+let renderer;
+
+let player;
+
+let enemies = [];
+
+let playerHP = 100;
+
+let keys = {
+    left: false,
+    right: false,
+    forward: false,
+    back: false
+};
+
+let gameRunning = false;
+
+
+/* ==========================================
+   START GAME
+========================================== */
+
+document.getElementById("startButton").onclick = function() {
+
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("gameUI").style.display = "block";
+
+    startGame();
+
+};
+
+
+/* ==========================================
+   SCENE
+========================================== */
+
+function startGame() {
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x160302);
+
+    /* CAMERA */
+
+    camera = new THREE.PerspectiveCamera(
+        65,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+
+    camera.position.set(0, 6, 10);
+
+
+    /* RENDERER */
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    renderer.shadowMap.enabled = true;
+
+    document.body.appendChild(renderer.domElement);
+
+
+    /* LIGHT */
+
+    const ambient = new THREE.HemisphereLight(
+        0xff6644,
+        0x111111,
+        2
+    );
+
+    scene.add(ambient);
+
+
+    const fireLight = new THREE.PointLight(
+        0xff2200,
+        5,
+        35
+    );
+
+    fireLight.position.set(0, 5, 0);
+
+    scene.add(fireLight);
+
+
+    /* GROUND */
+
+    const groundGeometry =
+        new THREE.PlaneGeometry(100, 100);
+
+    const groundMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x210807,
+            roughness: 1
+        });
+
+    const ground =
+        new THREE.Mesh(
+            groundGeometry,
+            groundMaterial
+        );
+
+    ground.rotation.x = -Math.PI / 2;
+
+    ground.receiveShadow = true;
+
+    scene.add(ground);
+
+
+    /* LAVA */
+
+    createLava();
+
+
+    /* PLAYER */
+
+    player = createDragonWarrior();
+
+    player.position.set(
+        0,
+        0,
+        5
+    );
+
+    scene.add(player);
+
+
+    /* ENEMIES */
+
+    createEnemies();
+
+
+    gameRunning = true;
+
+    animate();
+
+}
+
+
+/* ==========================================
+   LAVA
+========================================== */
+
+function createLava() {
+
+    for(let i = 0; i < 20; i++) {
+
+        const geometry =
+            new THREE.BoxGeometry(
+                Math.random() * 3 + 1,
+                0.08,
+                Math.random() * 2 + 1
+            );
+
+        const material =
+            new THREE.MeshBasicMaterial({
+                color: 0xff2600
+            });
+
+        const lava =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+        lava.position.set(
+            (Math.random() - .5) * 40,
+            .05,
+            (Math.random() - .5) * 30
+        );
+
+        scene.add(lava);
+    }
+
+}
+
+
+/* ==========================================
+   DRAGON WARRIOR
+========================================== */
+
+function createDragonWarrior() {
+
+    const group = new THREE.Group();
+
+
+    /* BODY */
+
+    const body =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .65,
+                .8,
+                1.7,
+                8
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x8f1207,
+                metalness: .6,
+                roughness: .3
+            })
+        );
+
+    body.position.y = 1.1;
+
+    group.add(body);
+
+
+    /* HEAD */
+
+    const head =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .65,
+                16,
+                16
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0xb51d0b,
+                metalness: .5
+            })
+        );
+
+    head.position.y = 2.4;
+
+    group.add(head);
+
+
+    /* DRAGON HORNS */
+
+    for(let side of [-1,1]) {
+
+        const horn =
+            new THREE.Mesh(
+                new THREE.ConeGeometry(
+                    .18,
+                    .7,
+                    8
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x30100a
+                })
+            );
+
+        horn.position.set(
+            side * .4,
+            2.9,
+            0
+        );
+
+        horn.rotation.z =
+            side * -.4;
+
+        group.add(horn);
+
+    }
+
+
+    /* EYES */
+
+    for(let side of [-1,1]) {
+
+        const eye =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    .09,
+                    8,
+                    8
+                ),
+                new THREE.MeshBasicMaterial({
+                    color: 0xffff00
+                })
+            );
+
+        eye.position.set(
+            side * .23,
+            2.5,
+            -.58
+        );
+
+        group.add(eye);
+
+    }
+
+
+    /* WINGS */
+
+    for(let side of [-1,1]) {
+
+        const wing =
+            new THREE.Mesh(
+                new THREE.ConeGeometry(
+                    .7,
+                    1.6,
+                    4
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x550800,
+                    side: THREE.DoubleSide
+                })
+            );
+
+        wing.position.set(
+            side * .8,
+            1.7,
+            .1
+        );
+
+        wing.rotation.z =
+            side * 1.2;
+
+        group.add(wing);
+
+    }
+
+
+    /* SWORD */
+
+    const sword =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .15,
+                1.8,
+                .15
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0xd9d9d9,
+                metalness: 1
+            })
+        );
+
+    sword.position.set(
+        .9,
+        1.3,
+        -.1
+    );
+
+    sword.rotation.z =
+        -.5;
+
+    group.add(sword);
+
+
+    return group;
+
+}
+
+
+/* ==========================================
+   BEAR WARRIOR
+========================================== */
+
+function createBearWarrior() {
+
+    const group =
+        new THREE.Group();
+
+
+    /* BODY */
+
+    const body =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .7,
+                .8,
+                1.6,
+                8
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x513019,
+                metalness: .3
+            })
+        );
+
+    body.position.y = 1;
+
+    group.add(body);
+
+
+    /* HEAD */
+
+    const head =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .7,
+                16,
+                16
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x70421f
+            })
+        );
+
+    head.position.y = 2.25;
+
+    group.add(head);
+
+
+    /* EARS */
+
+    for(let side of [-1,1]) {
+
+        const ear =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    .25,
+                    12,
+                    12
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x70421f
+                })
+            );
+
+        ear.position.set(
+            side * .55,
+            2.7,
+            0
+        );
+
+        group.add(ear);
+
+    }
+
+
+    /* EYES */
+
+    for(let side of [-1,1]) {
+
+        const eye =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    .08,
+                    8,
+                    8
+                ),
+                new THREE.MeshBasicMaterial({
+                    color: 0xff2200
+                })
+            );
+
+        eye.position.set(
+            side * .22,
+            2.35,
+            -.63
+        );
+
+        group.add(eye);
+
+    }
+
+
+    /* ARMOR */
+
+    const armor =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1.5,
+                .6,
+                .7
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x252525,
+                metalness: .7
+            })
+        );
+
+    armor.position.y = 1.3;
+
+    group.add(armor);
+
+
+    return group;
+
+}
+
+
+/* ==========================================
+   CREATE ENEMIES
+========================================== */
+
+function createEnemies() {
+
+    enemies = [];
+
+    const positions = [
+        [-5, -3],
+        [5, -3],
+        [-4, -8],
+        [4, -8],
+        [0, -11]
+    ];
+
+
+    positions.forEach(pos => {
+
+        const enemy =
+            createBearWarrior();
+
+        enemy.position.set(
+            pos[0],
+            0,
+            pos[1]
+        );
+
+        enemy.userData.hp = 100;
+
+        scene.add(enemy);
+
+        enemies.push(enemy);
+
+    });
+
+    updateEnemyCount();
+
+}
+
+
+/* ==========================================
+   ATTACK
+========================================== */
+
+document.getElementById("attackButton").onclick =
+function() {
+
+    if(!gameRunning) return;
+
+    let closest = null;
+
+    let distance = Infinity;
+
+
+    enemies.forEach(enemy => {
+
+        const d =
+            player.position.distanceTo(
+                enemy.position
+            );
+
+        if(d < distance) {
+
+            distance = d;
+
+            closest = enemy;
+
+        }
+
+    });
+
+
+    if(
+        closest &&
+        distance < 3.5
+    ) {
+
+        closest.userData.hp -= 50;
+
+        /* EFFECT */
+
+        closest.scale.set(
+            1.2,
+            1.2,
+            1.2
+        );
+
+        setTimeout(() => {
+
+            if(closest)
+                closest.scale.set(
+                    1,
+                    1,
+                    1
+                );
+
+        }, 120);
+
+
+        if(closest.userData.hp <= 0) {
+
+            scene.remove(closest);
+
+            enemies =
+                enemies.filter(
+                    e => e !== closest
+                );
+
+            updateEnemyCount();
+
+        }
+
+    }
+
+};
+
+
+/* ==========================================
+   MOVEMENT BUTTONS
+========================================== */
+
+function setupButton(id, key) {
+
+    const button =
+        document.getElementById(id);
+
+    button.addEventListener(
+        "touchstart",
+        e => {
+            e.preventDefault();
+            keys[key] = true;
+        }
+    );
+
+    button.addEventListener(
+        "touchend",
+        e => {
+            e.preventDefault();
+            keys[key] = false;
+        }
+    );
+
+}
+
+setupButton("left", "left");
+setupButton("right", "right");
+setupButton("forward", "forward");
+setupButton("back", "back");
+
+
+/* ==========================================
+   UPDATE
+========================================== */
+
+function update() {
+
+    if(!gameRunning) return;
+
+
+    const speed = .12;
+
+
+    if(keys.left)
+        player.position.x -= speed;
+
+    if(keys.right)
+        player.position.x += speed;
+
+    if(keys.forward)
+        player.position.z -= speed;
+
+    if(keys.back)
+        player.position.z += speed;
+
+
+    /* CAMERA FOLLOW */
+
+    camera.position.x =
+        player.position.x;
+
+    camera.position.z =
+        player.position.z + 9;
+
+    camera.lookAt(
+        player.position.x,
+        1.3,
+        player.position.z - 2
+    );
+
+
+    /* ENEMY AI */
+
+    enemies.forEach(enemy => {
+
+        const direction =
+            new THREE.Vector3()
+                .subVectors(
+                    player.position,
+                    enemy.position
+                );
+
+        const distance =
+            direction.length();
+
+        direction.normalize();
+
+
+        if(distance > 2.2) {
+
+            enemy.position.add(
+                direction.multiplyScalar(.025)
+            );
+
+        } else {
+
+            playerHP -= .035;
+
+            updateHealth();
+
+        }
+
+    });
+
+
+    /* VICTORY */
+
+    if(enemies.length === 0) {
+
+        endGame(
+            "VICTORY"
+        );
+
+    }
+
+
+    /* DEFEAT */
+
+    if(playerHP <= 0) {
+
+        endGame(
+            "GAME OVER"
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   HEALTH
+========================================== */
+
+function updateHealth() {
+
+    document.getElementById(
+        "health"
+    ).style.width =
+        Math.max(
+            playerHP,
+            0
+        ) + "%";
+
+}
+
+
+/* ==========================================
+   ENEMY COUNT
+========================================== */
+
+function updateEnemyCount() {
+
+    document.getElementById(
+        "enemyCount"
+    ).textContent =
+        enemies.length;
+
+}
+
+
+/* ==========================================
+   END GAME
+========================================== */
+
+function endGame(text) {
+
+    gameRunning = false;
+
+    document.getElementById(
+        "message"
+    ).style.display =
+        "flex";
+
+    document.getElementById(
+        "messageTitle"
+    ).textContent =
+        text;
+
+}
+
+
+/* ==========================================
+   RESTART
+========================================== */
+
+document.getElementById(
+    "restart"
+).onclick = function() {
+
+    location.reload();
+
+};
+
+
+/* ==========================================
+   LOOP
+========================================== */
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+    update();
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+/* ==========================================
+   RESIZE
+========================================== */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if(!camera || !renderer)
+            return;
+
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>
